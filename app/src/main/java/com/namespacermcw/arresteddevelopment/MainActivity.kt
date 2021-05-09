@@ -18,7 +18,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val request = ServiceBuilder.buildService(ArrestInterface::class.java)
-        val call = request.getRecords("az-mcso", "smith")
         val recordsAdapter = RecordsAdapter()
 
         progress_bar.visibility = View.GONE
@@ -29,22 +28,37 @@ class MainActivity : AppCompatActivity() {
             adapter = recordsAdapter
         }
 
-        call.enqueue(object : Callback<JailBaseResp>{
-            //override fun onResponse(call: Call<PopularMovies>, response: Response<PopularMovies>) {
-            override fun onResponse(call: Call<JailBaseResp>, response: Response<JailBaseResp>) {
-                if (response.isSuccessful){
-                    Log.d("_WORK", "${response.body()!!.records?.size}")
+        btnRecords.apply {
+            setOnClickListener {
+                //Log.d("_WORK", "EPIC FAIL!!")
+                val location = etLocation.editableText
+                val name = etName.editableText
 
-                    recordsAdapter.records = response.body()!!.records?: emptyList()
-                    recordsAdapter.notifyDataSetChanged()
-                }
-                Log.d("_WORK", "Did stuff")
+                //val call = request.getRecords("az-mcso", "smith")
+                val call = request.getRecords(location.toString(), name.toString())
+
+                call.enqueue(object : Callback<JailBaseResp> {
+                    //override fun onResponse(call: Call<PopularMovies>, response: Response<PopularMovies>) {
+                    override fun onResponse(
+                        call: Call<JailBaseResp>,
+                        response: Response<JailBaseResp>
+                    ) {
+                        if (response.isSuccessful) {
+                            Log.d("_WORK", "${response.body()!!.records?.size}")
+
+                            recordsAdapter.records = response.body()!!.records ?: emptyList()
+                            recordsAdapter.notifyDataSetChanged()
+                        }
+                        Log.d("_WORK", "Did stuff")
+                    }
+
+                    override fun onFailure(call: Call<JailBaseResp>, t: Throwable) {
+                        Toast.makeText(this@MainActivity, "${t.message}", Toast.LENGTH_SHORT).show()
+                        Log.d("_WORK", "EPIC FAIL!!")
+                    }
+                })
             }
-            override fun onFailure(call: Call<JailBaseResp>, t: Throwable) {
-                Toast.makeText(this@MainActivity, "${t.message}", Toast.LENGTH_SHORT).show()
-                Log.d("_WORK", "EPIC FAIL!!")
-            }
-        })
+        }
     }
 }
 
